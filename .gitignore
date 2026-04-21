@@ -1,0 +1,25 @@
+# Model artefacts
+checkpoints/
+*.pth
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+
+# Training data and outputs
+data/
+danish-golf-courses-orthophotos-DatasetNinja/
+runs/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# macOS
+.DS_Store
