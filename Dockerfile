@@ -2,6 +2,7 @@ FROM pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime
 
 # GDAL and geospatial deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     gdal-bin \
     libgdal-dev \
     python3-gdal \
