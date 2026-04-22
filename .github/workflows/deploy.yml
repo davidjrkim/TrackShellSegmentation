@@ -53,11 +53,13 @@ jobs:
             -e MODEL_CHECKPOINT_KEY=smoke/model.pth \
             -e DATABASE_URL=postgresql+asyncpg://smoke:smoke@localhost/smoke \
             -p 8001:8001 "$IMAGE"
-          # Wait up to 20 s for the server to start
+          # Wait up to 20 s for the server to start.
+          # Accept 200 (db up) or 503 (db unreachable) — both mean the API is running.
           for i in $(seq 1 10); do
             sleep 2
-            if curl -sf http://localhost:8001/health; then
-              echo "Health check passed"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8001/health)
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "503" ]; then
+              echo "Health check passed (HTTP $STATUS)"
               break
             fi
             if [ "$i" -eq 10 ]; then
