@@ -33,3 +33,8 @@ networkx==3.3
 # Training (not used in prod — harmless to include)
 tensorboard==2.16.2
 albumentations==1.4.3
+
+# Testing
+pytest==9.0.3
+pytest-asyncio==1.3.0
+pytest-cov==7.1.0
