@@ -26,7 +26,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          # Replace the pinned GDAL version with whatever gdal-config reports
+          # numpy must be installed before GDAL so gdal_array C extension compiles correctly
+          pip install numpy
           GDAL_VER=$(gdal-config --version)
           sed "s/^GDAL==.*/GDAL==${GDAL_VER}/" requirements.txt | pip install -r /dev/stdin
         env:
