@@ -9,7 +9,11 @@ from api.routes.jobs import router as jobs_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.db_pool = await asyncpg.create_pool(os.environ["DATABASE_URL"])
+    app.state.db_pool = await asyncpg.create_pool(
+        os.environ["DATABASE_URL"],
+        min_size=1,
+        max_size=10,
+    )
     yield
     await app.state.db_pool.close()
 

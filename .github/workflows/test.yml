@@ -1,0 +1,48 @@
+name: Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [dev, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install GDAL system library
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libgdal-dev gdal-bin
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          # Replace the pinned GDAL version with whatever gdal-config reports
+          GDAL_VER=$(gdal-config --version)
+          sed "s/^GDAL==.*/GDAL==${GDAL_VER}/" requirements.txt | pip install -r /dev/stdin
+        env:
+          CPLUS_INCLUDE_PATH: /usr/include/gdal
+          C_INCLUDE_PATH: /usr/include/gdal
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v --cov=pipeline --cov-report=term-missing --cov-fail-under=70
+        env:
+          # Stub env vars so module-level code that reads os.environ doesn't crash
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: testing
+          AWS_SECRET_ACCESS_KEY: testing
+          S3_CHECKPOINT_BUCKET: testing
+          GEMINI_API_KEY: testing
+          MAPBOX_TOKEN: testing
+          DATABASE_URL: postgresql+asyncpg://testing:testing@localhost/testing
+          MODEL_CHECKPOINT_KEY: testing/model.pth
