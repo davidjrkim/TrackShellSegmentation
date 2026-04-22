@@ -9,8 +9,9 @@ from api.routes.jobs import router as jobs_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    dsn = os.environ["DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://", 1)
     app.state.db_pool = await asyncpg.create_pool(
-        os.environ["DATABASE_URL"],
+        dsn,
         min_size=1,
         max_size=10,
     )
