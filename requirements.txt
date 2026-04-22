@@ -22,7 +22,7 @@ torch==2.2.2
 torchvision==0.17.2
 
 # LLM
-anthropic==0.25.0
+google-generativeai==0.8.3
 
 # Image
 Pillow==10.3.0
@@ -33,3 +33,8 @@ networkx==3.3
 # Training (not used in prod — harmless to include)
 tensorboard==2.16.2
 albumentations==1.4.3
+
+# Testing
+pytest==9.0.3
+pytest-asyncio==1.3.0
+pytest-cov==7.1.0

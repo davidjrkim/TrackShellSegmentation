@@ -85,7 +85,7 @@ pulls them from AWS Parameter Store at runtime:
 
 ```
 /golf-mapping/prod/DATABASE_URL
-/golf-mapping/prod/ANTHROPIC_API_KEY
+/golf-mapping/prod/GEMINI_API_KEY
 /golf-mapping/prod/AWS_S3_BUCKET
 /golf-mapping/prod/MAPBOX_TOKEN
 /golf-mapping/prod/MODEL_CHECKPOINT_KEY
@@ -196,5 +196,5 @@ When a new model checkpoint is ready:
 If the pipeline is failing and you cannot fix it:
 - Check CloudWatch logs first
 - Check Sentry for the full stack trace
-- Check if the issue is a failed LLM API call (ANTHROPIC_API_KEY expiry)
+- Check if the issue is a failed LLM API call (GEMINI_API_KEY expiry)
 - Check if the issue is S3 permissions (AWS IAM role)

@@ -8,7 +8,7 @@
 | Owner | David |
 | Core Stack | Python 3.11 · PyTorch 2 · GDAL · rasterio · FastAPI |
 | Model | DeepLabv3+ (ResNet-50 backbone) |
-| Hole Assignment | Vision LLM (`claude-sonnet-4-20250514`) |
+| Hole Assignment | Vision LLM (`gemini-2.0-flash`) |
 | Depends On | PRD 2c (Database Schema) |
 | Last Updated | April 2026 |
 
@@ -487,7 +487,7 @@ Training runs on **Lambda Labs cloud GPU** (Decision 6). Lambda Labs provides on
 | NetworkX | 3.x | Spatial graph construction |
 | FastAPI | 0.110+ | Job runner HTTP server |
 | asyncpg | latest | Async PostgreSQL driver |
-| anthropic SDK | latest | Vision LLM API calls |
+| google-generativeai | 0.8.3 | Vision LLM API calls |
 | numpy | 1.26+ | Array operations |
 | Pillow | 10+ | Overlay image rendering for LLM input |
 | pyproj | 3.x | CRS projection for accurate metric distance/area calculations |

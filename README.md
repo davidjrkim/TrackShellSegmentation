@@ -25,7 +25,7 @@ Stage 3 — Polygon Extraction
   Output: typed but unlabeled GeoJSON polygons
           ↓
 Stage 4 — Hole Assignment  (Vision LLM)
-  Spatial graph + topology rules + Claude vision model
+  Spatial graph + topology rules + Gemini vision model
   assigns hole numbers 1–18 to each polygon
           ↓
 Stage 5 — Database Write
@@ -40,7 +40,7 @@ Stage 5 — Database Write
 | Component | Technology |
 |-----------|-----------|
 | Segmentation model | DeepLabv3+ (ResNet-50, PyTorch) |
-| Hole assignment | Claude claude-sonnet-4-20250514 (vision LLM) |
+| Hole assignment | Gemini 2.0 Flash (vision LLM) |
 | Geospatial processing | GDAL, rasterio, Shapely |
 | Job runner API | FastAPI |
 | Database | PostgreSQL + PostGIS |
