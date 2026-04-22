@@ -75,7 +75,7 @@ def train(args):
     model = model.to(device)
 
     backbone_params = [p for n, p in model.backbone.named_parameters() if p.requires_grad]
-    head_params = list(model.classifier.parameters()) + list(model.aux_classifier.parameters())
+    head_params = list(model.classifier.parameters())
     optimizer = AdamW([
         {"params": backbone_params, "lr": args.lr / 10},
         {"params": head_params,     "lr": args.lr},
