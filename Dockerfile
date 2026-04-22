@@ -4,6 +4,7 @@ FROM python:3.11-slim-bookworm
 # See also: .github/workflows/test.yml which uses the same gdal-config approach.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     gdal-bin \
     libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
