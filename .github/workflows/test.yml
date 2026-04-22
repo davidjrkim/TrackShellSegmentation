@@ -29,7 +29,10 @@ jobs:
           # numpy must be installed before GDAL so gdal_array C extension compiles correctly
           pip install numpy
           GDAL_VER=$(gdal-config --version)
-          sed "s/^GDAL==.*/GDAL==${GDAL_VER}/" requirements.txt | pip install -r /dev/stdin
+          # Force source build so _gdal_array.so is compiled against the installed numpy
+          pip install GDAL==${GDAL_VER} --no-binary :gdal: --no-build-isolation
+          # Install the rest, skipping GDAL (already installed above)
+          grep -v '^GDAL==' requirements.txt | pip install -r /dev/stdin
         env:
           CPLUS_INCLUDE_PATH: /usr/include/gdal
           C_INCLUDE_PATH: /usr/include/gdal
