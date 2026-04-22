@@ -35,7 +35,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=pipeline --cov-report=term-missing --cov-fail-under=70
+          python -m pytest tests/ -v --cov=pipeline --cov-report=term-missing --cov-fail-under=70
         env:
           # Stub env vars so module-level code that reads os.environ doesn't crash
           AWS_REGION: us-east-1
