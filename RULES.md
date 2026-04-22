@@ -16,7 +16,7 @@ These rules override general defaults. Read before writing any code.
 - AWS credentials in code must only be read from the environment
   (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`). Never construct boto3/S3 clients
   with literal credentials.
-- The `ANTHROPIC_API_KEY` is consumed by the Anthropic SDK only. Never pass it
+- The `GEMINI_API_KEY` is consumed by the Google Generative AI SDK only. Never pass it
   as a function argument or include it in LLM prompt construction.
 
 ---

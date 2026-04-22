@@ -1,0 +1,84 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches: [master]
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  CONTAINER_NAME: trackshell-segmentation
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Docker image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke-test image (GET /health)
+        env:
+          IMAGE: ${{ steps.build-image.outputs.image }}
+        run: |
+          docker run -d --name smoke \
+            -e AWS_REGION=us-east-1 \
+            -e AWS_ACCESS_KEY_ID=smoke \
+            -e AWS_SECRET_ACCESS_KEY=smoke \
+            -e S3_CHECKPOINT_BUCKET=smoke \
+            -e GEMINI_API_KEY=smoke \
+            -e MAPBOX_TOKEN=smoke \
+            -e MODEL_CHECKPOINT_KEY=smoke/model.pth \
+            -e DATABASE_URL=postgresql+asyncpg://smoke:smoke@localhost/smoke \
+            -p 8001:8001 "$IMAGE"
+          # Wait up to 20 s for the server to start
+          for i in $(seq 1 10); do
+            sleep 2
+            if curl -sf http://localhost:8001/health; then
+              echo "Health check passed"
+              break
+            fi
+            if [ "$i" -eq 10 ]; then
+              docker logs smoke
+              exit 1
+            fi
+          done
+          docker stop smoke
+
+      - name: Render ECS task definition with new image
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: .aws/task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
