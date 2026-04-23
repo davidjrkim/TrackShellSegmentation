@@ -4,6 +4,8 @@ checkpoints/
 
 # Secrets
 .env
+*.local.sh
+*.local.txt
 
 # Python
 __pycache__/
