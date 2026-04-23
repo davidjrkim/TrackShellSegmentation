@@ -82,7 +82,10 @@ def train(args):
     ], weight_decay=1e-4)
     scheduler = PolynomialLR(optimizer, total_iters=args.epochs, power=0.9)
 
-    scaler = torch.cuda.amp.GradScaler(enabled=torch.cuda.is_available())
+    # AMP disabled — FP16 autocast caused the loss to go NaN at epoch 15 of the
+    # previous run. RTX 4090 has enough VRAM for FP32 at batch 8; the ~50% speed
+    # hit is worth the stability.
+    scaler = torch.cuda.amp.GradScaler(enabled=False)
     writer = SummaryWriter()
 
     best_miou = 0.0
@@ -99,7 +102,7 @@ def train(args):
         for images, masks in train_loader:
             images, masks = images.to(device), masks.to(device)
             optimizer.zero_grad()
-            with torch.cuda.amp.autocast(enabled=torch.cuda.is_available()):
+            with torch.cuda.amp.autocast(enabled=False):
                 out = model(images)["out"]
                 loss = combined_loss(out, masks, class_weights)
             scaler.scale(loss).backward()
