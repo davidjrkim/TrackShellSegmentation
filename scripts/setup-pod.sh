@@ -28,11 +28,16 @@ echo "==> Verifying AWS credentials"
 : "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY is not set}"
 aws s3 ls s3://golf-mapping-checkpoints/ >/dev/null
 
+echo "==> Installing system packages"
+apt-get update -qq
+apt-get install -y -qq tmux
+
 echo "==> Pulling latest code"
 git pull --ff-only
 
 echo "==> Installing training-only deps"
 pip install --quiet \
+  numpy==1.26.4 \
   boto3==1.34.69 \
   tensorboard==2.16.2 \
   albumentations==1.4.3
