@@ -16,7 +16,7 @@ tee boxes, water hazards) saved to PostgreSQL/PostGIS.
 
 Two ML stages:
 1. DeepLabv3+ (ResNet-50) — semantic segmentation, pixel classification
-2. Vision LLM (Claude claude-sonnet-4-20250514) — hole number assignment (1–18)
+2. Vision LLM (Gemini 2.0 Flash) — hole number assignment (1–18)
 
 Runs as a FastAPI job runner triggered by the golf-mapping-platform dashboard.
 
@@ -32,7 +32,7 @@ Runs as a FastAPI job runner triggered by the golf-mapping-platform dashboard.
 - NetworkX (spatial graph for hole assignment)
 - FastAPI (job runner HTTP server)
 - asyncpg (PostgreSQL driver)
-- Anthropic SDK (vision LLM hole assignment)
+- google-generativeai SDK (vision LLM hole assignment)
 - Pillow (composite image rendering for LLM)
 - pyproj 3.x (CRS projection for accurate metric distance/area calculations)
 - AWS S3 (checkpoint storage)
@@ -139,7 +139,7 @@ S3_CHECKPOINT_BUCKET  S3 bucket for model checkpoints and stage outputs
                       e.g. golf-mapping-checkpoints
 
 # LLM
-ANTHROPIC_API_KEY     For vision LLM hole assignment calls
+GEMINI_API_KEY        For vision LLM hole assignment calls (Gemini 2.0 Flash)
 
 # Satellite tiles
 MAPBOX_TOKEN          For fetching satellite imagery base layer

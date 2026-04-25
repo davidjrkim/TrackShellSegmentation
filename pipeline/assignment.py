@@ -183,6 +183,31 @@ def _score_and_flag(hole: dict, feature_index: dict) -> tuple[float, bool]:
     return score, score < REVIEW_THRESHOLD
 
 
+def _extract_json_text(resp) -> str:
+    """Pull text out of a Gemini response, stripping ```json fences."""
+    try:
+        text = resp.text or ""
+    except ValueError:
+        # SDK raises when the candidate has no text parts (safety block, etc.)
+        text = ""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+        if text.endswith("```"):
+            text = text[: -3]
+        text = text.strip()
+        if text.startswith("json\n"):
+            text = text[5:]
+    return text
+
+
+def _finish_reason(resp) -> str:
+    try:
+        return str(resp.candidates[0].finish_reason)
+    except (AttributeError, IndexError):
+        return "unknown"
+
+
 async def _call_llm_with_retry(image_b64: str, graph_json: str, n_holes: int) -> dict:
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
     model = genai.GenerativeModel(
@@ -198,11 +223,23 @@ async def _call_llm_with_retry(image_b64: str, graph_json: str, n_holes: int) ->
                 {"mime_type": "image/png", "data": image_bytes},
                 f"Spatial graph:\n{graph_json}",
             ])
-            return json.loads(resp.text)
+            text = _extract_json_text(resp)
+            if not text:
+                raise ValueError(
+                    f"Gemini returned empty text (finish_reason={_finish_reason(resp)})"
+                )
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError as exc:
+                raise ValueError(
+                    f"Gemini returned non-JSON (finish_reason={_finish_reason(resp)}): "
+                    f"{text[:200]!r}"
+                ) from exc
         except (
             gapi_exceptions.ResourceExhausted,
             gapi_exceptions.DeadlineExceeded,
             gapi_exceptions.InternalServerError,
+            ValueError,
         ) as exc:
             last_exc = exc
             if attempt < 2:
