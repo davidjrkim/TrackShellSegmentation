@@ -68,7 +68,7 @@ def _infer_with_oom_retry(model, chip, device) -> np.ndarray:
         return (top_probs + bot_probs) / 2
 
 
-async def segment_course(course_id: str, chips_prefix: str, force: bool = False) -> str:
+async def segment_course(course_id: str, chips_prefix: str, bbox, force: bool = False) -> str:
     bucket = os.environ["S3_CHECKPOINT_BUCKET"]
     mask_key = f"checkpoints/{course_id}/mask.tif"
 
@@ -107,12 +107,8 @@ async def segment_course(course_id: str, chips_prefix: str, force: bool = False)
     class_mask = prob_map.argmax(axis=0).astype(np.uint8)  # (H, W)
 
     # Write as single-band GeoTIFF and upload to S3
-    manifest_obj = s3.get_object(Bucket=bucket, Key=f"jobs/{course_id}/manifest.json")
-    manifest = json.loads(manifest_obj["Body"].read())
-    bbox = manifest["bbox"]
-
     transform = from_bounds(
-        bbox["min_lon"], bbox["min_lat"], bbox["max_lon"], bbox["max_lat"],
+        bbox.min_lon, bbox.min_lat, bbox.max_lon, bbox.max_lat,
         max_x, max_y,
     )
     buf = io.BytesIO()

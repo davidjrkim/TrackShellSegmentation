@@ -3,11 +3,19 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pipeline.orchestrator import run_pipeline
+from pipeline.preprocessing import BoundingBox
+
+
+_FAKE_BBOX = BoundingBox(min_lon=12.0, min_lat=55.0, max_lon=12.1, max_lat=55.1)
 
 
 def _make_pool():
     pool = AsyncMock()
     pool.execute = AsyncMock()
+    pool.fetchrow = AsyncMock(return_value={
+        "min_lon": _FAKE_BBOX.min_lon, "min_lat": _FAKE_BBOX.min_lat,
+        "max_lon": _FAKE_BBOX.max_lon, "max_lat": _FAKE_BBOX.max_lat,
+    })
     return pool
 
 
@@ -17,11 +25,11 @@ class TestRunPipeline:
         pool = _make_pool()
         calls = []
 
-        async def fake_preprocess(course_id, force):
+        async def fake_preprocess(course_id, bbox, force):
             calls.append("preprocessing")
             return "checkpoints/c/chips"
 
-        async def fake_segment(course_id, chips, force):
+        async def fake_segment(course_id, chips, bbox, force):
             calls.append("segmentation")
             return "checkpoints/c/mask.tif"
 
