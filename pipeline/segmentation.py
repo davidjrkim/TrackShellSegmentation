@@ -39,7 +39,7 @@ def _load_model(device: torch.device) -> torch.nn.Module:
 
     with tempfile.NamedTemporaryFile(suffix=".pth") as tmp:
         s3.download_file(bucket, key, tmp.name)
-        model = deeplabv3_resnet50(num_classes=NUM_CLASSES)
+        model = deeplabv3_resnet50(weights=None, weights_backbone=None, num_classes=NUM_CLASSES)
         model.load_state_dict(torch.load(tmp.name, map_location=device))
 
     model.eval()

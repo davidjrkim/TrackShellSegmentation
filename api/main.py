@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -7,8 +8,11 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from api.routes.jobs import router as jobs_router
+from pipeline.worker import run_worker
 
 logger = logging.getLogger(__name__)
+
+WORKER_SHUTDOWN_TIMEOUT_SECONDS = 10
 
 
 @asynccontextmanager
@@ -19,9 +23,23 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.error("Database pool failed to initialise: %s", exc)
         app.state.db_pool = None
-    yield
+
+    stop_event = asyncio.Event()
+    worker_task: asyncio.Task | None = None
     if app.state.db_pool is not None:
-        await app.state.db_pool.close()
+        worker_task = asyncio.create_task(run_worker(app.state.db_pool, stop_event))
+
+    try:
+        yield
+    finally:
+        stop_event.set()
+        if worker_task is not None:
+            try:
+                await asyncio.wait_for(worker_task, timeout=WORKER_SHUTDOWN_TIMEOUT_SECONDS)
+            except asyncio.TimeoutError:
+                worker_task.cancel()
+        if app.state.db_pool is not None:
+            await app.state.db_pool.close()
 
 
 app = FastAPI(title="TrackShell Segmentation API", lifespan=lifespan)
