@@ -156,7 +156,7 @@ def _upload_chips(chips: list[dict], course_id: str, bucket: str) -> str:
     return prefix
 
 
-async def preprocess_course(course_id: str, force: bool = False) -> str:
+async def preprocess_course(course_id: str, bbox: BoundingBox, force: bool = False) -> str:
     bucket = os.environ["S3_CHECKPOINT_BUCKET"]
     prefix = f"checkpoints/{course_id}/chips"
     meta_key = f"{prefix}/metadata.json"
@@ -165,12 +165,6 @@ async def preprocess_course(course_id: str, force: bool = False) -> str:
         return prefix
 
     token = os.environ["MAPBOX_TOKEN"]
-
-    # Fetch bounding box from DB (injected via env or passed via job payload in prod)
-    # For now, read from S3 job manifest written by the API layer
-    s3 = _s3_client()
-    manifest = json.loads(s3.get_object(Bucket=bucket, Key=f"jobs/{course_id}/manifest.json")["Body"].read())
-    bbox = BoundingBox(**manifest["bbox"])
 
     image = _download_tiles(bbox, MAPBOX_ZOOM, token)
     image, transform = _reproject_to_wgs84(image, WGS84, bbox)
