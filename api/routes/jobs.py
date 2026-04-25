@@ -4,7 +4,7 @@ import uuid
 from enum import Enum
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import UUID4, BaseModel, field_validator
 
@@ -34,7 +34,7 @@ class JobResponse(BaseModel):
 
 
 @router.post("/run", response_model=JobResponse)
-async def run_job(body: RunJobRequest, background_tasks: BackgroundTasks, request: Request):
+async def run_job(body: RunJobRequest, request: Request):
     job_id = str(uuid.uuid4())
     pool = request.app.state.db_pool
 
@@ -45,9 +45,6 @@ async def run_job(body: RunJobRequest, background_tasks: BackgroundTasks, reques
         """,
         job_id, str(body.course_id), body.job_type.value, body.force,
     )
-
-    from pipeline.orchestrator import run_pipeline
-    background_tasks.add_task(run_pipeline, job_id, str(body.course_id), body.force, pool)
 
     return JobResponse(job_id=job_id, status="queued")
 
